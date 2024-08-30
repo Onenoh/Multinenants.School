@@ -3,7 +3,7 @@ using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Identity.DbConfigurations
+namespace Infrastructure.Persistence.DbConfigurations
 {
     internal class SchoolConfig : IEntityTypeConfiguration<School>
     {

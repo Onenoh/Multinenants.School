@@ -1,4 +1,5 @@
-﻿using Infrastructure.Tenancy;
+﻿using Infrastructure.Persistence;
+using Infrastructure.Tenancy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,7 +10,8 @@ namespace Infrastructure
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             return services
-                .AddMultitenancyServices(configuration);
+                .AddMultitenancyServices(configuration)
+                .AddPersistenceService(configuration);
         }
     }
 }

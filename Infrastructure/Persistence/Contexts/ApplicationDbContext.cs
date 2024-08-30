@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Identity.Context
+namespace Infrastructure.Persistence.Context
 {
     public class ApplicationDbContext(ITenantInfo tenantInfo, DbContextOptions<ApplicationDbContext> options) : BaseDbContext(tenantInfo, options)
     {
