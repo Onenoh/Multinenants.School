@@ -72,7 +72,7 @@ namespace Infrastructure.Persistence.DbConfigurations
         public void Configure(EntityTypeBuilder<IdentityUserToken<string>> builder)
         {
             builder
-            .ToTable("UserLogins", SchemaNames.Identity)
+            .ToTable("UserTokens", SchemaNames.Identity)
             .IsMultiTenant();
         }
     }
