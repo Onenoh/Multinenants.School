@@ -17,5 +17,8 @@ namespace Infrastructure.Tenancy
 
         public const string DefaultPassword = "School@root";
         public const string TenantIdName = "tenant";
+        public const string FirstName = "Anthonia";
+        public const string LastName = "Okwe";
+
     }
 }
