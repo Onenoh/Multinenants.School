@@ -1,4 +1,5 @@
-﻿using Infrastructure.Persistence;
+﻿using Infrastructure.Identity;
+using Infrastructure.Persistence;
 using Infrastructure.Tenancy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,8 @@ namespace Infrastructure
         {
             return services
                 .AddMultitenancyServices(configuration)
-                .AddPersistenceService(configuration);
+                .AddPersistenceService(configuration)
+                .AddIdentityServices();
         }
     }
 }

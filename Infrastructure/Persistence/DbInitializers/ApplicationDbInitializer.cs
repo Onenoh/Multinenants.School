@@ -8,20 +8,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.DbInitializers
 {
-    internal class ApplicationDbInitializer(SchoolTenantInfo tenant, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager)
+    internal class ApplicationDbInitializer(SchoolTenantInfo tenant, ApplicationDbContext applicationDbContext, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager)
     {
         private readonly SchoolTenantInfo _tenant = tenant;
         private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
         private readonly UserManager<ApplicationUser> _userManager = userManager;
+        private readonly ApplicationDbContext _applicationDbContext = applicationDbContext;
 
 
-        public async Task InitializeDatabaseAsync(ApplicationDbContext applicationDbContext, CancellationToken cancellationToken)
+        public async Task InitializeDatabaseAsync(CancellationToken cancellationToken)
         {
-            await InitializerDefaultRoleAsync(applicationDbContext, cancellationToken);
+            await InitializerDefaultRoleAsync(cancellationToken);
             await InitializeAdminUserAsync();
         }
 
-        private async Task InitializerDefaultRoleAsync(ApplicationDbContext applicationDbContext, CancellationToken cancellationToken)
+        private async Task InitializerDefaultRoleAsync(CancellationToken cancellationToken)
         {
             foreach (string roleName in RoleConstants.DefaultRoles)
             {
@@ -33,11 +34,11 @@ namespace Infrastructure.Persistence.DbInitializers
 
                 if (roleName == RoleConstants.Basic)
                 {
-                    await AssignPermissionsToRole(applicationDbContext, SchoolPermissions.Basic, incomingRole, cancellationToken);
+                    await AssignPermissionsToRole(SchoolPermissions.Basic, incomingRole, cancellationToken);
                 }
                 else if (roleName == RoleConstants.Admin)
                 {
-                    await AssignPermissionsToRole(applicationDbContext, SchoolPermissions.Admin, incomingRole, cancellationToken);
+                    await AssignPermissionsToRole(SchoolPermissions.Admin, incomingRole, cancellationToken);
                 }
             }
         }
@@ -75,7 +76,7 @@ namespace Infrastructure.Persistence.DbInitializers
             }
         }
 
-        private async Task AssignPermissionsToRole(ApplicationDbContext dbContext, IReadOnlyList<SchoolPermission> rolePermissions, ApplicationRole currentRole, CancellationToken cancellationToken)
+        private async Task AssignPermissionsToRole(IReadOnlyList<SchoolPermission> rolePermissions, ApplicationRole currentRole, CancellationToken cancellationToken)
         {
             var currentClaims = await _roleManager.GetClaimsAsync(currentRole);
 
@@ -83,14 +84,14 @@ namespace Infrastructure.Persistence.DbInitializers
             {
                 if (!currentClaims.Any(c => c.Type == ClaimConstants.Permission && c.Value == rolePermission.Name))
                 {
-                    await dbContext.RoleClaims.AddAsync(new IdentityRoleClaim<string>
+                    await _applicationDbContext.RoleClaims.AddAsync(new IdentityRoleClaim<string>
                     {
                         RoleId = currentRole.Id,
                         ClaimType = ClaimConstants.Permission,
                         ClaimValue = rolePermission.Name
                     }, cancellationToken);
 
-                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await _applicationDbContext.SaveChangesAsync(cancellationToken);
                 }
             }
         }
