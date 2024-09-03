@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.DbInitializers
 {
-    internal class ApplicationDbInitializer(SchoolTenantInfo tenant, ApplicationDbContext applicationDbContext, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager)
+    public class ApplicationDbInitializer(SchoolTenantInfo tenant, ApplicationDbContext applicationDbContext, RoleManager<ApplicationRole> roleManager, UserManager<ApplicationUser> userManager)
     {
         private readonly SchoolTenantInfo _tenant = tenant;
         private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
