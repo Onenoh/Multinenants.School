@@ -55,7 +55,7 @@ namespace Infrastructure.Persistence.DbInitializers
                 adminUser = new ApplicationUser()
                 {
                     FirstName = TenancyConstants.FirstName,
-                    LastNmae = TenancyConstants.LastName,
+                    LastName = TenancyConstants.LastName,
                     Email = _tenant.AdminEmail,
                     UserName = _tenant.AdminEmail,
                     EmailConfirmed = true,

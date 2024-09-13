@@ -1,4 +1,7 @@
-﻿using Infrastructure.Identity.Models;
+﻿using Application.Features.Identity.Roles;
+using Application.Features.Identity.Token;
+using Infrastructure.Identity.Models;
+using Infrastructure.Identity.Tokens;
 using Infrastructure.Persistence.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +29,9 @@ namespace Infrastructure.Identity
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
-                .Services;
+                .Services
+                .AddTransient<ITokenService, TokenService>()
+                .AddTransient<IRoleService, RoleService>();
         }
     }
 }
