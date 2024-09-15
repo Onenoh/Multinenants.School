@@ -14,7 +14,8 @@ namespace Application.Features.Identity.Roles
         Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request);
 
         Task<List<RoleDto>> GetRolesAsync(CancellationToken ct);
-        Task<RoleDto> GetByIdAsync(string id);
+        Task<RoleDto> GetRoleByIdAsync(string id, CancellationToken ct);
+        Task<RoleDto> GetRoleWithPermissionAsync(string id, CancellationToken ct);    
         Task<bool> DoesItExistsAsync(string name);
     }
 }

@@ -1,16 +1,14 @@
 ﻿using Application.Exceptions;
 using Application.Features.Identity.Roles;
-using Azure.Core;
 using Finbuckle.MultiTenant;
 using Infrastructure.Identity.Constants;
 using Infrastructure.Identity.Models;
 using Infrastructure.Persistence.Context;
+using Infrastructure.Tenancy;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace Infrastructure.Identity
 {
@@ -68,14 +66,31 @@ namespace Infrastructure.Identity
             return await _roleManager.RoleExistsAsync(name);
         }
 
-        public Task<RoleDto> GetByIdAsync(string id)
+        public async Task<RoleDto> GetRoleByIdAsync(string id, CancellationToken ct)
         {
-            throw new NotImplementedException();
+            var roleInDb = await _context.Roles
+                .SingleOrDefaultAsync(r => r.Id == id, ct) 
+                ?? throw new NotFoundExceptions("Role does not exists.");
+
+            return roleInDb.Adapt<RoleDto>();
+
         }
 
-        public Task<List<RoleDto>> GetRolesAsync(CancellationToken ct)
+        public async Task<List<RoleDto>> GetRolesAsync(CancellationToken ct)
         {
-            throw new NotImplementedException();
+            var roleInDb = await _roleManager.Roles.ToListAsync(ct);
+
+            return roleInDb.Adapt<List<RoleDto>>();
+        }
+
+        public async Task<RoleDto> GetRoleWithPermissionAsync(string id, CancellationToken ct)
+        {
+            var roleDto = await GetRoleByIdAsync(id, ct);
+            roleDto.Permissions = await _context.RoleClaims
+                .Where(rc => rc.RoleId == id && rc.ClaimType == ClaimConstants.Permission)
+                .Select(rc => rc.ClaimValue)
+                .ToListAsync(ct);
+            return roleDto;
         }
 
         public async Task<string> UpdateAsync(UpdateRoleRequest request)
@@ -102,9 +117,46 @@ namespace Infrastructure.Identity
             return roleInDb.Name;
         }
 
-        public Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request)
+        public async Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request)
         {
-            throw new NotImplementedException();
+            var roleInDb = await _roleManager.FindByIdAsync(request.RoleId)
+                ?? throw new NotFoundExceptions("Role does not exists.");
+
+            if (roleInDb.Name == RoleConstants.Admin)
+            {
+                throw new ConflictExceptions($"Not allowed to change permissions for {roleInDb.Name} role");
+            }
+
+            if (_tenant.Id != TenancyConstants.Root.Id)
+            {
+                request.Permissions.RemoveAll(p => p.StartsWith("Permission.Root."));
+            }
+
+            var currentClaims = await _roleManager.GetClaimsAsync(roleInDb);
+
+            foreach (var claim in currentClaims.Where(c => !request.Permissions.Any(p => p == c.Value)))
+            {
+                var result = await _roleManager.RemoveClaimAsync(roleInDb, claim);
+
+                if (!result.Succeeded)
+                {
+                    throw new IdentityExceptions("Failed to remove permission.", GetIdentityResultErrorDescriptions(result));
+                }
+            }
+
+            foreach(var permission in request.Permissions.Where(p => !currentClaims.Any(c => c.Value == p)))
+            {
+                await _context.RoleClaims
+                    .AddAsync(new IdentityRoleClaim<string>
+                    {
+                        RoleId = roleInDb.Id,
+                        ClaimType = ClaimConstants.Permission,
+                        ClaimValue = permission
+                    });
+                await _context.SaveChangesAsync();
+            }
+
+            return "Permissions Updated Successfully";
         }
 
         private List<string> GetIdentityResultErrorDescriptions(IdentityResult identityResult)
