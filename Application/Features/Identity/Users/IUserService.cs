@@ -10,7 +10,7 @@ namespace Application.Features.Identity.Users
     {
         Task<string> CreateUserAsync(CreateUserRequest request);
         Task<string> UpdateUserAsync(UpdateUserRequest request);
-        Task<string> DeleteUserAsync(string id);
+        Task<string> DeleteUserAsync(string userId);
         Task<string> ActivateOrDeactivateAsync(string userId, bool activation);
         Task<string> ChangePasswordsync(ChangePasswordRequest request);
         Task<string> AssignRolesAsync(string userId, UserRolesRequest request);

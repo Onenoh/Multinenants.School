@@ -5,6 +5,7 @@ using Infrastructure.Identity.Constants;
 using Infrastructure.Identity.Models;
 using Infrastructure.Persistence.Context;
 using Infrastructure.Tenancy;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -25,9 +26,7 @@ namespace Infrastructure.Identity
 
         public async Task<string> ActivateOrDeactivateAsync(string userId, bool activation)
         {
-            var userInDb = await _userManager.Users
-                .Where(u => u.Id == userId)
-                .FirstOrDefaultAsync() ?? throw new NotFoundExceptions("User does not exists.");
+            var userInDb = await GetUserAsync(userId);
 
             userInDb.IsActive = activation;
 
@@ -38,9 +37,7 @@ namespace Infrastructure.Identity
 
         public async Task<string> AssignRolesAsync(string userId, UserRolesRequest request)
         {
-            var userInDb = await _userManager.Users
-                .Where(u => u.Id == userId)
-                .FirstOrDefaultAsync() ?? throw new NotFoundExceptions("User does not exists.");
+            var userInDb = await GetUserAsync(userId);
 
             if (await _userManager.IsInRoleAsync(userInDb, RoleConstants.Admin) 
                 && request.UserRoles.Any(ur => !ur.IsAssigned && ur.Name == RoleConstants.Admin))
@@ -79,44 +76,150 @@ namespace Infrastructure.Identity
             return userInDb.Id;
         }
 
-        public Task<string> ChangePasswordsync(ChangePasswordRequest request)
+        public async Task<string> ChangePasswordsync(ChangePasswordRequest request)
         {
-            throw new NotImplementedException();
+            var userInDb = await GetUserAsync(request.UserId);
+
+            if (request.NewPassword != request.ConfirmNewPassword)
+            {
+                throw new ConflictExceptions("Password do mot match.");
+            }
+
+            var result = await _userManager.ChangePasswordAsync(userInDb, request.CurrentPassword, request.CurrentPassword);
+
+            if (!result.Succeeded)
+            {
+                throw new IdentityExceptions("Failed to change password.", GetIdentityResultErrorDescriptions(result));
+            }
+
+            return userInDb.Id;
         }
 
-        public Task<string> CreateUserAsync(CreateUserRequest request)
+        public async Task<string> CreateUserAsync(CreateUserRequest request)
         {
-            throw new NotImplementedException();
+            if (request.Password != request.ConfirmPassword)
+            {
+                throw new ConflictExceptions("Passwords do not match.");
+            }
+
+            if (await IsEmailTakenAsync(request.Email))
+            {
+                throw new ConflictExceptions("Email already taken.");
+            }
+
+            var newUser = new ApplicationUser
+            {
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Email = request.Email,
+                PhoneNumber = request.PhoneNumber,
+                IsActive = request.IsActive
+            };
+
+            var result = await _userManager.CreateAsync(newUser, request.Password);
+            if (!result.Succeeded)
+            {
+                throw new IdentityExceptions("Failed to create user.", GetIdentityResultErrorDescriptions(result));
+            }
+
+            return newUser.Id;
         }
 
-        public Task<string> DeleteUserAsync(string id)
+        public async Task<string> DeleteUserAsync(string userId)
         {
-            throw new NotImplementedException();
+            var userInDb = await GetUserAsync(userId);
+
+            _context.Users.Remove(userInDb);
+            await _context.SaveChangesAsync();
+
+            return userInDb.Id;
         }
 
-        public Task<List<UserDto>> GetUserAsync(CancellationToken ct)
+        public async Task<List<UserDto>> GetUserAsync(CancellationToken ct)
         {
-            throw new NotImplementedException();
+            var userInDb = await _userManager.Users
+                .AsNoTracking()
+                .ToListAsync(ct);
+
+            return userInDb.Adapt<List<UserDto>>();
         }
 
-        public Task<UserDto> GetUserByIdAsync(string userId, CancellationToken ct)
+        public async Task<UserDto> GetUserByIdAsync(string userId, CancellationToken ct)
         {
-            throw new NotImplementedException();
+            var UserInDb = await GetUserAsync(userId, ct);
+
+            return UserInDb.Adapt<UserDto>();
         }
 
-        public Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken ct)
+        public async Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken ct)
         {
-            throw new NotImplementedException();
+            var userRoles = new List<UserRoleDto>();
+
+            var UserInDb = await GetUserAsync(userId, ct);
+            var roles = await _roleManager.Roles
+                .AsNoTracking()
+                .ToListAsync(ct);
+            foreach(var role in roles)
+            {
+                userRoles.Add(new UserRoleDto
+                {
+                    RoleId = role.Id,
+                    Name = role.Name,
+                    Description = role.Description,
+                    IsAssigned = await _userManager.IsInRoleAsync(UserInDb, role.Name)
+                });
+            }
+
+            return userRoles;
+
         }
 
-        public Task<bool> IsEmailTakenAsync(string email)
+        public async Task<bool> IsEmailTakenAsync(string email)
         {
-            throw new NotImplementedException();
+            return await _userManager.FindByEmailAsync(email) is not null;
+
+            //if (await _userManager.FindByEmailAsync(email) is not null)
+            //{
+            //    return true;
+            //}
+            //return false;
         }
 
-        public Task<string> UpdateUserAsync(UpdateUserRequest request)
+        public async Task<string> UpdateUserAsync(UpdateUserRequest request)
         {
-            throw new NotImplementedException();
+            var userInDb = await GetUserAsync(request.Id);
+
+            userInDb.FirstName = request.FirstName;
+            userInDb.LastName = request.LastName;
+            userInDb.PhoneNumber = request.PhoneNumber;
+
+            var result = await _userManager.UpdateAsync(userInDb);
+
+            if (!result.Succeeded)
+            {
+                throw new IdentityExceptions("Failed to update user.", GetIdentityResultErrorDescriptions(result));
+            }
+
+            await _signInManager.RefreshSignInAsync(userInDb);
+
+            return userInDb.Id;
         }
+
+        private async Task<ApplicationUser> GetUserAsync(string userId, CancellationToken ct = default)
+         => await _userManager.Users
+                  .Where(u => u.Id == userId)
+                  .FirstOrDefaultAsync(ct) ?? throw new NotFoundExceptions("User does not exists.");
+
+        private List<string> GetIdentityResultErrorDescriptions(IdentityResult identityResult)
+        {
+            var errorDescriptions = new List<string>();
+            foreach (var error in identityResult.Errors)
+            {
+                errorDescriptions.Add(error.Description);
+            }
+
+            return errorDescriptions;
+        }
+
     }
 }
