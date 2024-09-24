@@ -12,6 +12,5 @@ namespace Application.Exceptions
         public List<string> ErrorMessages { get; set; } = errorMessages;
         public HttpStatusCode StatusCode { get; set; } = statusCode;
     }
-    {
-    }
+   
 }

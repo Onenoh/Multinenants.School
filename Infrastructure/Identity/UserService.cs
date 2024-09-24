@@ -205,6 +205,26 @@ namespace Infrastructure.Identity
             return userInDb.Id;
         }
 
+        public async Task<List<string>> GetPermissionsAsync(string userId, CancellationToken ct)
+        {
+            var userInDb = await GetUserAsync(userId, ct);
+            var userRoles = await _userManager.GetRolesAsync(userInDb);
+
+            var permissions = new List<string>();
+
+            foreach (var role in await _roleManager.Roles.Where(r => userRoles.Contains(r.Name)).ToListAsync(ct))
+            {
+                permissions.AddRange(await _context.RoleClaims.Where(rc => rc.RoleId == role.Id && rc.ClaimType == ClaimConstants.Permission)
+                    .Select(rc => rc.ClaimType)
+                    .ToListAsync(ct));
+            }
+
+            return permissions.Distinct().ToList();
+        }
+
+        public async Task<bool> IsPermissionAssignedAsync(string userId, string permission, CancellationToken ct)
+            => (await GetPermissionsAsync(userId, ct)).Contains(permission);
+        
         private async Task<ApplicationUser> GetUserAsync(string userId, CancellationToken ct = default)
          => await _userManager.Users
                   .Where(u => u.Id == userId)
@@ -221,5 +241,6 @@ namespace Infrastructure.Identity
             return errorDescriptions;
         }
 
+        
     }
 }

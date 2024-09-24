@@ -1,13 +1,19 @@
-﻿using Application.Features.Identity.Roles;
+﻿using Application.Features.Identity.Auth;
+using Application.Features.Identity.Roles;
 using Application.Features.Identity.Token;
+using Application.Features.Identity.Users;
+using Infrastructure.Identity.Auth;
 using Infrastructure.Identity.Models;
 using Infrastructure.Identity.Tokens;
 using Infrastructure.Persistence.Context;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,7 +37,22 @@ namespace Infrastructure.Identity
                 .AddDefaultTokenProviders()
                 .Services
                 .AddTransient<ITokenService, TokenService>()
-                .AddTransient<IRoleService, RoleService>();
+                .AddTransient<IRoleService, RoleService>()
+                .AddTransient<IUserService, UserService>()
+                .AddScoped<ICurrentUserService, CurrentUserService>()
+                .AddScoped<CurrentUserMiddleware>();
+        }
+
+        internal static IApplicationBuilder UseCurrentUser(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<CurrentUserMiddleware>();
+        }
+
+        internal static IServiceCollection AddPermission(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()
+                .AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         }
     }
 }

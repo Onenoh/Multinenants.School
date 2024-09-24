@@ -18,5 +18,8 @@ namespace Application.Features.Identity.Users
         Task<UserDto> GetUserByIdAsync(string userId, CancellationToken ct);
         Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken ct);
         Task<bool> IsEmailTakenAsync(string email);
+
+        Task<List<string>> GetPermissionsAsync(string userId, CancellationToken ct);
+        Task<bool> IsPermissionAssignedAsync(string userId, string permission, CancellationToken ct = default);
     }
 }
