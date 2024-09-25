@@ -1,9 +1,11 @@
 ﻿using Application.Exceptions;
 using Application.Features.Identity.Token;
+using Infrastructure.Identity.Auth.Jwt;
 using Infrastructure.Identity.Constants;
 using Infrastructure.Identity.Models;
 using Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,10 +15,11 @@ using System.Text;
 
 namespace Infrastructure.Identity.Tokens
 {
-    public class TokenService(UserManager<ApplicationUser> userManger, SchoolTenantInfo tenant) : ITokenService
+    public class TokenService(UserManager<ApplicationUser> userManger, SchoolTenantInfo tenant, IOptions<JwtSettings> jwtSettings) : ITokenService
     {
         private readonly UserManager<ApplicationUser> _userManager = userManger;
         private readonly SchoolTenantInfo _tenant = tenant;
+        private readonly JwtSettings _jwtSettings = jwtSettings.Value;
         public async Task<TokenResponse> LoginAsync(TokenRequest request)
         {
            var userInDb = await _userManager.FindByEmailAsync(request.Email);
@@ -62,7 +65,7 @@ namespace Infrastructure.Identity.Tokens
             var tkValidationParams = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("School@UDEMYLesson!engineer")),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ClockSkew = TimeSpan.Zero,
@@ -86,7 +89,7 @@ namespace Infrastructure.Identity.Tokens
             string newToken = GenerateJwt(user);
 
             user.RefreshToken = GenerateRefreshToken();
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryTimeInDays);
 
             await _userManager.UpdateAsync(user);
 
@@ -114,7 +117,7 @@ namespace Infrastructure.Identity.Tokens
         {
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(60),
+                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.TokenExpiryTimeInMinutes),
                 signingCredentials: signingCredentials);
             var tokenHandler = new JwtSecurityTokenHandler();
             return tokenHandler.WriteToken(token);
@@ -122,7 +125,7 @@ namespace Infrastructure.Identity.Tokens
 
         private SigningCredentials GetSigningCredentials()
         {
-            byte[] secret = Encoding.UTF8.GetBytes("School@UDEMYLesson!engineer");
+            byte[] secret = Encoding.UTF8.GetBytes(_jwtSettings.Key);
             return new SigningCredentials(new SymmetricSecurityKey(secret), SecurityAlgorithms.HmacSha256);
         }
 

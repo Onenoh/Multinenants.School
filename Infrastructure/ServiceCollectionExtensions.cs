@@ -15,7 +15,8 @@ namespace Infrastructure
                 .AddMultitenancyServices(configuration)
                 .AddPersistenceService(configuration)
                 .AddIdentityServices()
-                .AddPermission();
+                .AddPermission()
+                .AddJwtAuthentication();
         }
 
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)

@@ -3,9 +3,11 @@ using Application.Features.Identity.Roles;
 using Application.Features.Identity.Token;
 using Application.Features.Identity.Users;
 using Infrastructure.Identity.Auth;
+using Infrastructure.Identity.Auth.Jwt;
 using Infrastructure.Identity.Models;
 using Infrastructure.Identity.Tokens;
 using Infrastructure.Persistence.Context;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -53,6 +55,19 @@ namespace Infrastructure.Identity
             return services
                 .AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()
                 .AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        }
+
+        internal static IServiceCollection AddJwtAuthentication(this IServiceCollection services)
+        {
+            services
+                .AddOptions<JwtSettings>()
+                .BindConfiguration("JwtSettings");
+            return services
+                .AddAuthentication(auth =>
+                {
+                    auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                }).Services;
         }
     }
 }

@@ -4,10 +4,9 @@ using System.Net;
 
 namespace Application.Exceptions
 {
-    public class ConflictExceptions(string message, List<string> errorMessages = default, HttpStatusCode statusCode = HttpStatusCode.Conflict) : Exception(message)
+    public class ForbiddenExceptions(string message, List<string> errorMessages = default, HttpStatusCode statusCode = HttpStatusCode.Forbidden) : Exception(message)
     {
         public List<string> ErrorMessages { get; set; } = errorMessages;
         public HttpStatusCode StatusCode { get; set; } = statusCode;
     }
-   
 }
