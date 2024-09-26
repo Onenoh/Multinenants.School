@@ -20,10 +20,10 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    Identifier = table.Column<string>(type: "nvarchar(60)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(60)", nullable: false),
-                    ConnectionString = table.Column<string>(type: "nvarchar(256)", nullable: true),
-                    AdminEmail = table.Column<string>(type: "nvarchar(60)", nullable: false),
+                    Identifier = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConnectionString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AdminEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ValidUpTo = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
