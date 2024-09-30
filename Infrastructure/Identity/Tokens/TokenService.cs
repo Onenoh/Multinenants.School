@@ -43,7 +43,7 @@ namespace Infrastructure.Identity.Tokens
             {
                 if (_tenant.ValidUpTo < DateTime.UtcNow)
                 {
-                    throw new UnauthorizedException("Organisation Subscription jas expired. Please contact admin.");
+                    throw new UnauthorizedException("Organisation Subscription has expired. Please contact admin.");
                 }
             }
 
@@ -138,7 +138,7 @@ namespace Infrastructure.Identity.Tokens
                 new(ClaimTypes.Name, user.FirstName),
                 new(ClaimTypes.Surname, user.LastName),
                 new(ClaimConstants.Tenant, _tenant.Id),
-                new(ClaimTypes.MobilePhone, user.PhoneNumber)
+                new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty)
             ];
         }
     }

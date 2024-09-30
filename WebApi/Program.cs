@@ -1,5 +1,6 @@
 using Infrastructure;
 using Infrastructure.Persistence;
+using Application;
 
 namespace WebApi
 {
@@ -12,6 +13,7 @@ namespace WebApi
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddApplicationService();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddInfrastructureServices(builder.Configuration);
 

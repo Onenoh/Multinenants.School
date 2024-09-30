@@ -1,5 +1,6 @@
 ﻿using Application.Features.Tenancy;
 using Infrastructure.Identity.Constants;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
@@ -28,6 +29,12 @@ namespace Infrastructure.Tenancy
                 .WithEFCoreStore<TenantDbContext, SchoolTenantInfo>()
                 .Services
                 .AddScoped<ITenantService, TenantService>();
+        }
+
+        internal static IApplicationBuilder UseMultitenancy(this IApplicationBuilder app)
+        {
+            return app
+                .UseMultiTenant();
         }
 
         private static FinbuckleMultiTenantBuilder<SchoolTenantInfo> WithCustomQueryStringStrategy(this FinbuckleMultiTenantBuilder<SchoolTenantInfo> builder, string customQueryStringStrategy) 
