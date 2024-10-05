@@ -12,12 +12,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Identity
 {
@@ -62,12 +60,28 @@ namespace Infrastructure.Identity
             services
                 .AddOptions<JwtSettings>()
                 .BindConfiguration("JwtSettings");
-            return services
+            services
                 .AddAuthentication(auth =>
                 {
                     auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                }).Services;
+                })
+                .AddJwtBearer(options =>
+                {
+                    var jwtSettings = services.BuildServiceProvider().GetRequiredService<IOptions<JwtSettings>>().Value;
+                    byte[] key = Encoding.ASCII.GetBytes(jwtSettings.Key);
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ClockSkew = TimeSpan.Zero,
+                        RoleClaimType = ClaimTypes.Role,
+                        ValidateLifetime = false
+                    };
+                });
+            return services;
         }
     }
 }

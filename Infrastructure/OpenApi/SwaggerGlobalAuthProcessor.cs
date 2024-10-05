@@ -27,7 +27,7 @@ namespace Infrastructure.OpenApi
                     return true;
                 }
 
-                if (context.OperationDescription.Operation.Security.Count == 0)
+                if (context.OperationDescription.Operation.Security is null)
                 {
                     (context.OperationDescription.Operation.Security ??= new List<OpenApiSecurityRequirement>())
                         .Add(new OpenApiSecurityRequirement

@@ -22,7 +22,7 @@ namespace Infrastructure.Identity.Tokens
         private readonly JwtSettings _jwtSettings = jwtSettings.Value;
         public async Task<TokenResponse> LoginAsync(TokenRequest request)
         {
-           var userInDb = await _userManager.FindByEmailAsync(request.Email);
+            var userInDb = await _userManager.FindByEmailAsync(request.Email);
 
             if (userInDb is null)
             {
@@ -93,15 +93,15 @@ namespace Infrastructure.Identity.Tokens
 
             await _userManager.UpdateAsync(user);
 
-            return new() 
-            { 
+            return new()
+            {
                 JwtToken = newToken,
                 RefreshToken = user.RefreshToken,
                 RefreshTokenExpiryDate = user.RefreshTokenExpiryTime
             };
         }
 
-        private string GenerateJwt(ApplicationUser user) 
+        private string GenerateJwt(ApplicationUser user)
         {
             return GenerateEncryptedToken(GetSigningCredentials(), GetUserClaims(user));
         }
