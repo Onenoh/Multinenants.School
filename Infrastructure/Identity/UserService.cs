@@ -215,7 +215,7 @@ namespace Infrastructure.Identity
             foreach (var role in await _roleManager.Roles.Where(r => userRoles.Contains(r.Name)).ToListAsync(ct))
             {
                 permissions.AddRange(await _context.RoleClaims.Where(rc => rc.RoleId == role.Id && rc.ClaimType == ClaimConstants.Permission)
-                    .Select(rc => rc.ClaimType)
+                    .Select(rc => rc.ClaimValue)
                     .ToListAsync(ct));
             }
 
