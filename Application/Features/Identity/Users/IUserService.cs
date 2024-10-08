@@ -12,7 +12,7 @@ namespace Application.Features.Identity.Users
         Task<string> UpdateUserAsync(UpdateUserRequest request);
         Task<string> DeleteUserAsync(string userId);
         Task<string> ActivateOrDeactivateAsync(string userId, bool activation);
-        Task<string> ChangePasswordsync(ChangePasswordRequest request);
+        Task<string> ChangePasswordAsync(ChangePasswordRequest request);
         Task<string> AssignRolesAsync(string userId, UserRolesRequest request);
         Task<List<UserDto>> GetUserAsync(CancellationToken ct);
         Task<UserDto> GetUserByIdAsync(string userId, CancellationToken ct);

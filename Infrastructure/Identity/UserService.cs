@@ -76,7 +76,7 @@ namespace Infrastructure.Identity
             return userInDb.Id;
         }
 
-        public async Task<string> ChangePasswordsync(ChangePasswordRequest request)
+        public async Task<string> ChangePasswordAsync(ChangePasswordRequest request)
         {
             var userInDb = await GetUserAsync(request.UserId);
 
