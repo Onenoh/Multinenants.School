@@ -13,7 +13,7 @@ namespace Application.Features.Identity.Users.Commands
         public ChangePasswordRequest ChangePassword { get; set; }
     }
 
-    public class ChnageUserPasswordCommandHandler(IUserService userService) : IRequestHandler<ChangeUserPasswordCommand, IResponseWrapper>
+    public class ChangeUserPasswordCommandHandler(IUserService userService) : IRequestHandler<ChangeUserPasswordCommand, IResponseWrapper>
     {
         private readonly IUserService _userService = userService;
         public async Task<IResponseWrapper> Handle(ChangeUserPasswordCommand request, CancellationToken cancellationToken)
