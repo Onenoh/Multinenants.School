@@ -1,4 +1,5 @@
 ﻿using Application.Models.Wrapper;
+using Application.Pipelines;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Schools.Commands
 {
-    public class UpdateSchoolCommand : IRequest<IResponseWrapper>
+    public class UpdateSchoolCommand : IRequest<IResponseWrapper>, IValidateMe
     {
         public UpdateSchoolRequest SchoolRequest { get; set; }
     }

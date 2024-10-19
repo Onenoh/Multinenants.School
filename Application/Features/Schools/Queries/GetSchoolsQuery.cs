@@ -20,9 +20,13 @@ namespace Application.Features.Schools.Queries
 
         public async Task<IResponseWrapper> Handle(GetSchoolsQuery request, CancellationToken cancellationToken)
         {
-            var schools = (await _schoolService.GetSchoolAsync()).Adapt<List<SchoolResponse>>();
+            var schoolsInDb = await _schoolService.GetSchoolAsync();
 
-            return await ResponseWrapper<List<SchoolResponse>>.SucccessAsync(data: schools);
+            if (schoolsInDb.Count > 0)
+            {
+                return await ResponseWrapper<List<SchoolResponse>>.SucccessAsync(data: schoolsInDb.Adapt<List<SchoolResponse>>());
+            }
+            return await ResponseWrapper<List<SchoolResponse>>.FailAsync(message: "No Schools were found.");
         }
     }
 }

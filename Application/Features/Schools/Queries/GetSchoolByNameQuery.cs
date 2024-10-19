@@ -22,7 +22,12 @@ namespace Application.Features.Schools.Queries
         {
             var schoolInDb = (await _schoolService.GetSchoolByNameAsync(request.Name)).Adapt<SchoolResponse>();
 
-            return await ResponseWrapper<SchoolResponse>.SucccessAsync(data: schoolInDb);
+            if (schoolInDb is not null)
+            {
+                return await ResponseWrapper<SchoolResponse>.SucccessAsync(data: schoolInDb);
+            }
+            return await ResponseWrapper<SchoolResponse>.FailAsync(message: "School does not exist.");
+            
         }
     }
 }
