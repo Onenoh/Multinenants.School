@@ -25,6 +25,7 @@ namespace Infrastructure.Tenancy
             var newTenant = new SchoolTenantInfo
             {
                 Id = createTenant.Identifier,
+                Identifier = createTenant.Identifier,
                 Name = createTenant.Name,
                 ConnectionString = createTenant.ConnectionString,
                 AdminEmail = createTenant.AdminEmail,

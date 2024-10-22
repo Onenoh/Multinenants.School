@@ -39,6 +39,10 @@ namespace Infrastructure.Persistence.DbInitializers
                 else if (roleName == RoleConstants.Admin)
                 {
                     await AssignPermissionsToRole(SchoolPermissions.Admin, incomingRole, cancellationToken);
+                    if (_tenant.Id == TenancyConstants.Root.Id)
+                    {
+                        await AssignPermissionsToRole(SchoolPermissions.Root, incomingRole, cancellationToken);
+                    }
                 }
             }
         }
