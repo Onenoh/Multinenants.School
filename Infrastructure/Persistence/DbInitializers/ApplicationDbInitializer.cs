@@ -18,8 +18,20 @@ namespace Infrastructure.Persistence.DbInitializers
 
         public async Task InitializeDatabaseAsync(CancellationToken cancellationToken)
         {
-            await InitializerDefaultRoleAsync(cancellationToken);
-            await InitializeAdminUserAsync();
+            if (_applicationDbContext.Database.GetMigrations().Any())
+            {
+                if ((await _applicationDbContext.Database.GetPendingMigrationsAsync(cancellationToken)).Any())
+                {
+                    await _applicationDbContext.Database.MigrateAsync(cancellationToken);
+                }
+
+                if (await _applicationDbContext.Database.CanConnectAsync(cancellationToken))
+                {
+                    await InitializerDefaultRoleAsync(cancellationToken);
+                    await InitializeAdminUserAsync();
+                }
+            }
+            
         }
 
         private async Task InitializerDefaultRoleAsync(CancellationToken cancellationToken)

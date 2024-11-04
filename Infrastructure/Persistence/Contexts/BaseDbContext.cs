@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,6 +24,19 @@ namespace Infrastructure.Persistence.Context
             base.OnModelCreating(builder);
 
             builder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+
+            if (!string.IsNullOrEmpty(TenantInfo?.ConnectionString))
+            {
+                optionsBuilder.UseSqlServer(TenantInfo.ConnectionString, options =>
+                {
+                    options.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
+                });
+            }
         }
     }
 }
